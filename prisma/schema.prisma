@@ -1,0 +1,187 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User model for authentication
+model User {
+  id          String      @id @default(uuid())
+  email       String      @unique
+  password    String
+  firstName   String      @map("first_name")
+  lastName    String      @map("last_name")
+  roleId      String      @map("role_id")
+  role        Role        @relation(fields: [roleId], references: [id])
+  active      Boolean     @default(true)
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+  
+  // Relations
+  picklists   Picklist[]
+  adjustments InventoryAdjustment[]
+  
+  @@map("users")
+}
+
+// Role model for authorization
+model Role {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  
+  // Relations
+  users       User[]
+  
+  @@map("roles")
+}
+
+// Product model
+model Product {
+  id          String   @id @default(uuid())
+  sku         String   @unique
+  barcode     String   @unique
+  name        String
+  description String?
+  unitOfMeasure String @map("unit_of_measure")
+  weight      Float?
+  dimensions  Json?    // {length, width, height}
+  category    String?
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  
+  // Relations
+  inventoryLevels InventoryLevel[]
+  picklistItems   PicklistItem[]
+  adjustments     InventoryAdjustment[]
+  
+  @@map("products")
+}
+
+// Bin Location model
+model BinLocation {
+  id          String   @id @default(uuid())
+  code        String   @unique
+  zone        String
+  aisle       String
+  rack        String
+  shelf       String
+  bin         String
+  capacity    Float?
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  
+  // Relations
+  inventoryLevels InventoryLevel[]
+  picklistItems   PicklistItem[]
+  adjustments     InventoryAdjustment[]
+  
+  @@map("bin_locations")
+}
+
+// Inventory Level model
+model InventoryLevel {
+  id              String      @id @default(uuid())
+  productId       String      @map("product_id")
+  product         Product     @relation(fields: [productId], references: [id])
+  binLocationId   String      @map("bin_location_id")
+  binLocation     BinLocation @relation(fields: [binLocationId], references: [id])
+  quantityOnHand  Float       @map("quantity_on_hand")
+  quantityAvailable Float     @map("quantity_available")
+  quantityReserved Float      @default(0) @map("quantity_reserved")
+  lastCountDate   DateTime?   @map("last_count_date")
+  createdAt       DateTime    @default(now()) @map("created_at")
+  updatedAt       DateTime    @updatedAt @map("updated_at")
+  
+  @@unique([productId, binLocationId])
+  @@map("inventory_levels")
+}
+
+// Inventory Adjustment model
+model InventoryAdjustment {
+  id              String      @id @default(uuid())
+  productId       String      @map("product_id")
+  product         Product     @relation(fields: [productId], references: [id])
+  binLocationId   String      @map("bin_location_id")
+  binLocation     BinLocation @relation(fields: [binLocationId], references: [id])
+  adjustmentType  AdjustmentType @map("adjustment_type")
+  quantityChange  Float       @map("quantity_change")
+  reason          String
+  notes           String?
+  userId          String      @map("user_id")
+  user            User        @relation(fields: [userId], references: [id])
+  createdAt       DateTime    @default(now()) @map("created_at")
+  
+  @@map("inventory_adjustments")
+}
+
+// Picklist model
+model Picklist {
+  id            String         @id @default(uuid())
+  orderNumber   String         @unique @map("order_number")
+  status        PicklistStatus @default(PENDING)
+  assignedToId  String?        @map("assigned_to_id")
+  assignedTo    User?          @relation(fields: [assignedToId], references: [id])
+  priority      Int            @default(0)
+  dueDate       DateTime?      @map("due_date")
+  startedAt     DateTime?      @map("started_at")
+  completedAt   DateTime?      @map("completed_at")
+  notes         String?
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updatedAt     DateTime       @updatedAt @map("updated_at")
+  
+  // Relations
+  items         PicklistItem[]
+  
+  @@map("picklists")
+}
+
+// Picklist Item model
+model PicklistItem {
+  id                  String      @id @default(uuid())
+  picklistId          String      @map("picklist_id")
+  picklist            Picklist    @relation(fields: [picklistId], references: [id])
+  productId           String      @map("product_id")
+  product             Product     @relation(fields: [productId], references: [id])
+  sourceBinLocationId String      @map("source_bin_location_id")
+  sourceBinLocation   BinLocation @relation(fields: [sourceBinLocationId], references: [id])
+  quantityRequested   Float       @map("quantity_requested")
+  quantityPicked      Float       @default(0) @map("quantity_picked")
+  isPicked            Boolean     @default(false) @map("is_picked")
+  pickSequence        Int         @map("pick_sequence")
+  pickedAt            DateTime?   @map("picked_at")
+  notes               String?
+  createdAt           DateTime    @default(now()) @map("created_at")
+  updatedAt           DateTime    @updatedAt @map("updated_at")
+  
+  @@map("picklist_items")
+}
+
+// Enums
+enum AdjustmentType {
+  PHYSICAL_COUNT
+  DAMAGED
+  LOST
+  FOUND
+  RECEIVED
+  RETURNED
+  CYCLE_COUNT
+  OTHER
+}
+
+enum PicklistStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}

@@ -1,0 +1,78 @@
+{
+  "productName": "Nexus WMS Core",
+  "version": "1.0",
+  "documentStatus": "Approved",
+  "lastUpdated": "2025-08-06T13:25:34Z",
+  "author": "Product Management",
+  "introduction": {
+    "problemStatement": "Small and medium-sized businesses (SMBs) often rely on manual processes, spreadsheets, or disjointed systems to manage their warehouse inventory. This leads to high rates of human error, inaccurate stock counts, inefficient order fulfillment, and a lack of real-time visibility, ultimately hurting profitability and customer satisfaction.",
+    "vision": "To create an intuitive, reliable, and affordable Warehouse Management System (WMS) that empowers SMBs to optimize their inventory, streamline fulfillment operations, and make data-driven decisions with confidence."
+  },
+  "userPersonas": [
+    {
+      "personaName": "William the Warehouse Manager",
+      "role": "Manages overall warehouse operations, staffing, and performance."
+    },
+    {
+      "personaName": "Peter the Picker & Packer",
+      "role": "Gathers items for customer orders and prepares them for shipment."
+    }
+  ],
+  "featureRequirements": {
+    "epics": [
+      {
+        "epicName": "Core Inventory Management",
+        "userStories": [
+          {
+            "storyId": "INV-001",
+            "priority": "High",
+            "userStory": "As William the Warehouse Manager, I want to view a real-time list of all SKUs with their total quantity on-hand, available quantity, and physical locations, so that I have complete visibility of my inventory."
+          },
+          {
+            "storyId": "INV-002",
+            "priority": "High",
+            "userStory": "As William the Warehouse Manager, I want to perform inventory adjustments, so that I can correct stock discrepancies."
+          }
+        ]
+      },
+      {
+        "epicName": "Outbound Logistics (Picking & Packing)",
+        "userStories": [
+          {
+            "storyId": "OUT-001",
+            "priority": "High",
+            "userStory": "As Peter the Picker, I want to be assigned a digital picklist on my mobile device that guides me through the warehouse in an optimized path, so that I can reduce travel time and pick orders faster."
+          },
+          {
+            "storyId": "OUT-002",
+            "priority": "High",
+            "userStory": "As Peter the Picker, I want to scan the item's barcode and the bin location during picking, so that I can ensure I am picking the correct item from the correct place."
+          }
+        ]
+      }
+    ]
+  },
+  "technicalConsiderations": {
+    "sectionDescription": "This section outlines the proposed high-level technology stack and architecture. Detailed implementation plans will be in separate Backend and Frontend Technical Design Documents.",
+    "backend": {
+      "language": "TypeScript",
+      "runtime": "Node.js (LTS version)",
+      "framework": "Express.js",
+      "database": "PostgreSQL with Prisma as the ORM.",
+      "apiStyle": "RESTful API with JSON responses.",
+      "deployment": "Containerized using Docker, deployed to a service like AWS Elastic Beanstalk, Heroku, or Render."
+    },
+    "frontend": {
+      "framework": "React 18+",
+      "buildTool": "Vite",
+      "language": "TypeScript",
+      "styling": "Tailwind CSS",
+      "stateManagement": "Zustand (for global UI state) and React Query (for server cache state).",
+      "deployment": "Hosted as a static site on Vercel, Netlify, or AWS S3 with CloudFront."
+    },
+    "mobileScannerApp": {
+      "platform": "Progressive Web App (PWA)",
+      "rationale": "Allows the mobile app to be accessed via a browser on any scanning device, leveraging service workers for offline capabilities and reusing the web frontend codebase."
+    }
+  }
+}
