@@ -110,7 +110,7 @@ export const getNextAssignedPicklist = asyncHandler(async (req: Request, res: Re
 
   logger.info(`Picker ${req.user?.email} retrieved picklist ${picklist.orderNumber}`);
 
-  res.json({
+  return res.json({
     success: true,
     data: formattedPicklist,
   });
@@ -349,7 +349,7 @@ export const getPicklistById = asyncHandler(async (req: Request, res: Response) 
     });
   }
 
-  res.json({
+  return res.json({
     success: true,
     data: picklist,
   });

@@ -78,7 +78,7 @@ async function main() {
   console.log('✅ Users created');
 
   // Create bin locations
-  const binLocations = [];
+  const binLocations = [] as any[];
   const zones = ['A', 'B', 'C'];
   const aisles = ['01', '02', '03'];
   const racks = ['1', '2', '3'];
@@ -126,7 +126,7 @@ async function main() {
         description: '15-inch business laptop with Intel i7 processor',
         unitOfMeasure: 'EACH',
         weight: 2.5,
-        dimensions: { length: 35, width: 25, height: 2 },
+        dimensions: JSON.stringify({ length: 35, width: 25, height: 2 }),
         category: 'Electronics',
       },
     }),
@@ -140,7 +140,7 @@ async function main() {
         description: 'Ergonomic wireless mouse with USB receiver',
         unitOfMeasure: 'EACH',
         weight: 0.1,
-        dimensions: { length: 10, width: 6, height: 4 },
+        dimensions: JSON.stringify({ length: 10, width: 6, height: 4 }),
         category: 'Electronics',
       },
     }),
@@ -154,7 +154,7 @@ async function main() {
         description: 'RGB mechanical keyboard with blue switches',
         unitOfMeasure: 'EACH',
         weight: 1.2,
-        dimensions: { length: 45, width: 15, height: 3 },
+        dimensions: JSON.stringify({ length: 45, width: 15, height: 3 }),
         category: 'Electronics',
       },
     }),
@@ -168,7 +168,7 @@ async function main() {
         description: '4K UHD monitor with HDR support',
         unitOfMeasure: 'EACH',
         weight: 5.5,
-        dimensions: { length: 65, width: 45, height: 20 },
+        dimensions: JSON.stringify({ length: 65, width: 45, height: 20 }),
         category: 'Electronics',
       },
     }),
@@ -182,7 +182,7 @@ async function main() {
         description: 'High-speed HDMI cable, 2 meters',
         unitOfMeasure: 'EACH',
         weight: 0.2,
-        dimensions: { length: 20, width: 10, height: 2 },
+        dimensions: JSON.stringify({ length: 20, width: 10, height: 2 }),
         category: 'Accessories',
       },
     }),
@@ -191,7 +191,7 @@ async function main() {
   console.log('✅ Products created');
 
   // Create initial inventory levels
-  const inventoryLevels = [];
+  const inventoryLevels = [] as any[];
   for (let i = 0; i < products.length; i++) {
     const product = products[i];
     // Add inventory in 3 different locations for each product
@@ -225,8 +225,10 @@ async function main() {
 
   // Create sample picklists
   const picklists = await Promise.all([
-    prisma.picklist.create({
-      data: {
+    prisma.picklist.upsert({
+      where: { orderNumber: 'ORD-2025-001' },
+      update: {},
+      create: {
         orderNumber: 'ORD-2025-001',
         status: 'PENDING',
         assignedToId: users[2].id, // Peter Picker
@@ -255,8 +257,10 @@ async function main() {
         },
       },
     }),
-    prisma.picklist.create({
-      data: {
+    prisma.picklist.upsert({
+      where: { orderNumber: 'ORD-2025-002' },
+      update: {},
+      create: {
         orderNumber: 'ORD-2025-002',
         status: 'PENDING',
         assignedToId: users[2].id, // Peter Picker

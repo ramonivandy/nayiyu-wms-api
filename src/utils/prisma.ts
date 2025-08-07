@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { config, isDevelopment } from '../config';
+import { isDevelopment } from '../config';
 
 // Create a singleton instance of Prisma Client
 const prismaClientSingleton = () => {

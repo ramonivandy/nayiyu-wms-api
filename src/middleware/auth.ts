@@ -14,7 +14,7 @@ interface JwtPayload {
 
 export const authenticate = async (
   req: Request,
-  res: Response,
+  _res: Response,
   next: NextFunction
 ) => {
   try {
@@ -60,7 +60,7 @@ export const authenticate = async (
 };
 
 export const authorize = (...allowedRoles: string[]) => {
-  return (req: Request, res: Response, next: NextFunction) => {
+  return (req: Request, _res: Response, next: NextFunction) => {
     if (!req.user) {
       return next(new UnauthorizedError('Authentication required'));
     }
@@ -81,6 +81,10 @@ export const generateToken = (user: {
   roleId: string;
   roleName: string;
 }): string => {
+  const jwtOptions: any = {};
+  if (config.jwt.expiresIn) {
+    jwtOptions.expiresIn = config.jwt.expiresIn;
+  }
   return jwt.sign(
     {
       id: user.id,
@@ -89,8 +93,6 @@ export const generateToken = (user: {
       roleName: user.roleName,
     },
     config.jwt.secret,
-    {
-      expiresIn: config.jwt.expiresIn,
-    }
+    jwtOptions
   );
 };

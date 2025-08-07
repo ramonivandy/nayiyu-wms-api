@@ -2,6 +2,7 @@ import dotenv from 'dotenv';
 
 // Load environment variables
 dotenv.config();
+console.log('DATABASE_URL:', process.env.DATABASE_URL);
 
 export const config = {
   // Server
@@ -9,7 +10,7 @@ export const config = {
   nodeEnv: process.env.NODE_ENV || 'development',
   
   // Database
-  databaseUrl: process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/nexus_wms?schema=public',
+  databaseUrl: process.env.DATABASE_URL || 'file:./dev.db',
   
   // JWT
   jwt: {

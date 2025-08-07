@@ -23,7 +23,14 @@ export const createInventoryAdjustment = asyncHandler(async (req: Request, res: 
     quantityChange,
     reason,
     notes,
-  } = validatedData;
+  } = validatedData as {
+    productId: string;
+    binLocationId: string;
+    adjustmentType: string;
+    quantityChange: number;
+    reason: string;
+    notes?: string | null;
+  };
 
   // Use Prisma transaction to ensure atomicity
   const result = await prisma.$transaction(async (tx) => {

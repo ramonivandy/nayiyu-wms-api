@@ -7,9 +7,9 @@ import { isDevelopment } from '../config';
 
 export const errorHandler = (
   err: Error,
-  req: Request,
+  _req: Request,
   res: Response,
-  next: NextFunction
+  _next: NextFunction
 ) => {
   let error = err;
   let statusCode = 500;
@@ -56,7 +56,7 @@ export const errorHandler = (
   }
 
   // Send response
-  res.status(statusCode).json({
+  return res.status(statusCode).json({
     success: false,
     message,
     ...(isDevelopment && { stack: error.stack }),

@@ -6,7 +6,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -53,7 +53,7 @@ model Product {
   description String?
   unitOfMeasure String @map("unit_of_measure")
   weight      Float?
-  dimensions  Json?    // {length, width, height}
+  dimensions  String?    // {length, width, height} - was Json?
   category    String?
   active      Boolean  @default(true)
   createdAt   DateTime @default(now()) @map("created_at")
@@ -114,7 +114,7 @@ model InventoryAdjustment {
   product         Product     @relation(fields: [productId], references: [id])
   binLocationId   String      @map("bin_location_id")
   binLocation     BinLocation @relation(fields: [binLocationId], references: [id])
-  adjustmentType  AdjustmentType @map("adjustment_type")
+  adjustmentType  String      @map("adjustment_type") // was AdjustmentType
   quantityChange  Float       @map("quantity_change")
   reason          String
   notes           String?
@@ -129,7 +129,7 @@ model InventoryAdjustment {
 model Picklist {
   id            String         @id @default(uuid())
   orderNumber   String         @unique @map("order_number")
-  status        PicklistStatus @default(PENDING)
+  status        String         @default("PENDING") // was PicklistStatus
   assignedToId  String?        @map("assigned_to_id")
   assignedTo    User?          @relation(fields: [assignedToId], references: [id])
   priority      Int            @default(0)
@@ -167,21 +167,4 @@ model PicklistItem {
   @@map("picklist_items")
 }
 
-// Enums
-enum AdjustmentType {
-  PHYSICAL_COUNT
-  DAMAGED
-  LOST
-  FOUND
-  RECEIVED
-  RETURNED
-  CYCLE_COUNT
-  OTHER
-}
-
-enum PicklistStatus {
-  PENDING
-  IN_PROGRESS
-  COMPLETED
-  CANCELLED
-}
+// Removed enums AdjustmentType and PicklistStatus for SQLite compatibility

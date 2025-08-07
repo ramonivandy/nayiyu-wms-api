@@ -7,7 +7,7 @@ import picklistRoutes from './picklist.routes';
 const router = Router();
 
 // Health check for API
-router.get('/', (req, res) => {
+router.get('/', (_req, res) => {
   res.json({
     success: true,
     message: 'Nexus WMS Core API v1.0',

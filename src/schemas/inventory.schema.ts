@@ -1,10 +1,10 @@
 import { z } from 'zod';
-import { AdjustmentType } from '@prisma/client';
+// import { AdjustmentType } from '@prisma/client';
 
 export const inventoryAdjustmentSchema = z.object({
   productId: z.string().uuid('Invalid product ID'),
   binLocationId: z.string().uuid('Invalid bin location ID'),
-  adjustmentType: z.nativeEnum(AdjustmentType),
+  adjustmentType: z.string(),
   quantityChange: z.number({
     required_error: 'Quantity change is required',
     invalid_type_error: 'Quantity change must be a number',

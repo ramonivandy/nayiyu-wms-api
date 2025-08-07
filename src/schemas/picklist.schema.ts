@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { PicklistStatus } from '@prisma/client';
+// import { PicklistStatus } from '@prisma/client';
 
 export const verifyPickSchema = z.object({
   picklistItemId: z.string().uuid('Invalid picklist item ID'),
@@ -9,7 +9,7 @@ export const verifyPickSchema = z.object({
 });
 
 export const updatePicklistStatusSchema = z.object({
-  status: z.nativeEnum(PicklistStatus),
+  status: z.string(),
   notes: z.string().optional(),
 });
 

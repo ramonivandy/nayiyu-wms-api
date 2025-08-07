@@ -10,6 +10,8 @@ import { logger } from '../utils/logger';
  * Required Role: Warehouse Manager
  */
 export const getProducts = asyncHandler(async (req: Request, res: Response) => {
+  // Original code commented for debugging
+  
   // Validate and parse query parameters
   const query = getProductsQuerySchema.parse(req.query) as GetProductsQuery;
   
@@ -185,7 +187,7 @@ export const getProductById = asyncHandler(async (req: Request, res: Response) =
     totalQuantityReserved,
   };
 
-  res.json({
+  return res.json({
     success: true,
     data: productWithDetails,
   });
