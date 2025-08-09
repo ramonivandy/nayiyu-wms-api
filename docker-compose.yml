@@ -1,55 +1,24 @@
 version: '3.8'
 
 services:
-  postgres:
-    image: postgres:15-alpine
-    container_name: nexus-wms-db
-    environment:
-      POSTGRES_DB: nexus_wms
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - nexus-network
-
   api:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: nexus-wms-api
+    container_name: pesenin-api
     environment:
       NODE_ENV: production
-      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/nexus_wms?schema=public
+      DATABASE_URL: file:./dev.db
       JWT_SECRET: ${JWT_SECRET:-production-secret-change-this}
       JWT_EXPIRES_IN: 7d
       PORT: 3000
       CORS_ORIGIN: http://localhost:5173
       LOG_LEVEL: info
     ports:
-      - "3000:3000"
-    depends_on:
-      postgres:
-        condition: service_healthy
+      - '3000:3000'
     command: >
       sh -c "
-        npx prisma migrate deploy &&
+        npx prisma db push &&
         node dist/index.js
       "
-    networks:
-      - nexus-network
     restart: unless-stopped
-
-volumes:
-  postgres_data:
-
-networks:
-  nexus-network:
-    driver: bridge

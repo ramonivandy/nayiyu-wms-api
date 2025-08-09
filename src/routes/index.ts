@@ -1,8 +1,9 @@
 import { Router } from 'express';
 import authRoutes from './auth.routes';
 import productRoutes from './product.routes';
-import inventoryRoutes from './inventory.routes';
-import picklistRoutes from './picklist.routes';
+import materialsRoutes from './materials.routes';
+import ordersRoutes from './orders.routes';
+import calculationsRoutes from './calculations.routes';
 
 const router = Router();
 
@@ -10,15 +11,16 @@ const router = Router();
 router.get('/', (_req, res) => {
   res.json({
     success: true,
-    message: 'Nexus WMS Core API v1.0',
+    message: 'Pesenin! API v1',
     timestamp: new Date().toISOString(),
   });
 });
 
 // Mount route modules
 router.use('/auth', authRoutes);
+router.use('/materials', materialsRoutes);
 router.use('/products', productRoutes);
-router.use('/inventory', inventoryRoutes);
-router.use('/picklists', picklistRoutes);
+router.use('/orders', ordersRoutes);
+router.use('/calculations', calculationsRoutes);
 
 export default router;

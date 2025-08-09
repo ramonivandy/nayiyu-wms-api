@@ -1,0 +1,173 @@
+{
+    "product_name": "Pesenin!",
+    "version": "MVP-1.0",
+    "prd": {
+      "overview": "Pesenin! is a lightweight Warehouse Management System (WMS) tailored for small home-based businesses (e.g., frozen dimsum mentai sellers). The goal is to simplify inventory, order, and production management while being accessible via mobile-first design.",
+      "target_users": [
+        "Home-based food business owners",
+        "Small UMKM operators without dedicated warehouse staff"
+      ],
+      "objectives": [
+        "Track raw material and product inventory",
+        "Calculate maximum production capacity based on available ingredients (BOM)",
+        "Provide expiry tracking for raw materials and products",
+        "Allow quick order input and automatic stock checking"
+      ],
+      "scope": {
+        "in_scope": [
+          "Raw material inventory management",
+          "Finished product inventory management",
+          "BOM definition per product",
+          "Production calculation based on available stock",
+          "Expiry date input and tracking",
+          "Order input and stock validation",
+          "Low-stock notifications",
+          "Mobile-first responsive web interface"
+        ],
+        "out_of_scope": [
+          "Multi-warehouse support",
+          "Integration with external ERP systems",
+          "Automated barcode scanning",
+          "Complex reporting dashboards"
+        ]
+      },
+      "features": [
+        {
+          "name": "Inventory Management",
+          "description": "Add, update, and view stock of raw materials and finished goods with unit type and expiry date."
+        },
+        {
+          "name": "BOM & Production Calculator",
+          "description": "Define per-portion recipe (raw materials and quantities). Calculate max producible portions based on stock and identify bottleneck materials."
+        },
+        {
+          "name": "Order Management",
+          "description": "Record orders manually. Check stock availability automatically based on BOM."
+        },
+        {
+          "name": "Expiry Tracking",
+          "description": "Store expiry date per stock batch. Alert when expiry is near."
+        },
+        {
+          "name": "Low Stock Alerts",
+          "description": "Notify user when stock falls below configured threshold."
+        },
+        {
+          "name": "Responsive Web UI",
+          "description": "Mobile-first UI optimized for ~375px viewport, responsive up to 768px."
+        }
+      ],
+      "user_stories": [
+        "As a seller, I want to input raw material stock with expiry dates so I can manage freshness.",
+        "As a seller, I want to define BOM per product so I can calculate production capacity.",
+        "As a seller, I want to know if I have enough ingredients to fulfill an order before confirming it.",
+        "As a seller, I want to get alerts when stock is low so I can restock in time."
+      ],
+      "acceptance_criteria": [
+        "User can add raw material stock with name, quantity, unit, and expiry date.",
+        "User can define BOM for a product with raw material quantities.",
+        "System can calculate maximum portions producible based on current stock.",
+        "System can list which materials are short for a given order quantity.",
+        "UI is fully functional on mobile and tablet screen sizes."
+      ]
+    },
+    "techspec": {
+      "api": {
+        "stack": {
+          "language": "TypeScript",
+          "framework": "Node.js + Express",
+          "database": "SQLite",
+          "containerization": "Docker"
+        },
+        "architecture": "REST API with versioned endpoints under /api/v1/",
+        "main_endpoints": [
+          {
+            "path": "/api/v1/materials",
+            "methods": ["GET", "POST", "PUT", "DELETE"],
+            "description": "Manage raw material inventory"
+          },
+          {
+            "path": "/api/v1/products",
+            "methods": ["GET", "POST", "PUT", "DELETE"],
+            "description": "Manage finished products and their BOM"
+          },
+          {
+            "path": "/api/v1/orders",
+            "methods": ["GET", "POST"],
+            "description": "Record and view orders"
+          },
+          {
+            "path": "/api/v1/calculations/production",
+            "methods": ["POST"],
+            "description": "Calculate maximum producible portions and shortages"
+          }
+        ],
+        "database_schema": {
+          "tables": {
+            "materials": {
+              "id": "integer, primary key",
+              "name": "text",
+              "quantity": "real",
+              "unit": "text",
+              "expiry_date": "date",
+              "low_stock_threshold": "real"
+            },
+            "products": {
+              "id": "integer, primary key",
+              "name": "text"
+            },
+            "bom_items": {
+              "id": "integer, primary key",
+              "product_id": "integer, fk(products.id)",
+              "material_id": "integer, fk(materials.id)",
+              "quantity_per_portion": "real"
+            },
+            "orders": {
+              "id": "integer, primary key",
+              "product_id": "integer, fk(products.id)",
+              "quantity": "integer",
+              "order_date": "date"
+            }
+          }
+        }
+      },
+      "web": {
+        "stack": {
+          "framework": "Vite + React",
+          "language": "TypeScript",
+          "styling": "TailwindCSS",
+          "ui_library": "shadcn/ui",
+          "containerization": "Docker"
+        },
+        "architecture": "SPA (Single Page Application) consuming REST API",
+        "pages": [
+          {
+            "name": "Dashboard",
+            "description": "Overview of stock, low-stock alerts, upcoming expiries"
+          },
+          {
+            "name": "Materials",
+            "description": "List, add, edit, delete raw materials"
+          },
+          {
+            "name": "Products",
+            "description": "List products and define BOM per product"
+          },
+          {
+            "name": "Orders",
+            "description": "Input and view orders"
+          },
+          {
+            "name": "Production Calculator",
+            "description": "Simulate production capacity and shortages"
+          }
+        ],
+        "responsive_design": {
+          "mobile_first": true,
+          "base_width": "375px",
+          "max_responsive_width": "768px"
+        }
+      }
+    }
+  }
+  

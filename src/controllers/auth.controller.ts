@@ -74,14 +74,12 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
     throw new AppError('User with this email already exists', 409);
   }
 
-  // Verify role exists
-  const role = await prisma.role.findUnique({
-    where: { id: roleId },
+  // Verify role exists (Admin-only in MVP). Fallback to Admin if none provided.
+  const adminRole = await prisma.role.upsert({
+    where: { name: 'Admin' },
+    update: {},
+    create: { name: 'Admin', description: 'Administrator' },
   });
-
-  if (!role) {
-    throw new AppError('Invalid role ID', 400);
-  }
 
   // Hash password
   const hashedPassword = await bcrypt.hash(password, 10);
@@ -93,7 +91,7 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
       password: hashedPassword,
       firstName,
       lastName,
-      roleId,
+      roleId: roleId || adminRole.id,
     },
     include: { role: true },
   });
@@ -106,7 +104,7 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
     roleName: user.role.name,
   });
 
-  logger.info(`New user registered: ${email} with role ${role.name}`);
+  logger.info(`New user registered: ${email} with role ${user.role.name}`);
 
   res.status(201).json({
     success: true,

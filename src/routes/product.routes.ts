@@ -1,18 +1,27 @@
 import { Router } from 'express';
-import { getProducts, getProductById } from '../controllers/product.controller';
+import {
+  listProducts,
+  createProduct,
+  updateProduct,
+  deleteProduct,
+  getProductById,
+  setProductBom,
+} from '../controllers/product.controller';
 import { authenticate, authorize } from '../middleware/auth';
 
 const router = Router();
 
-// All product routes require authentication
-router.use(authenticate);
+// Admin-only for MVP
+router.use(authenticate, authorize('Admin'));
 
-// GET /api/v1/products - Get paginated list of products (INV-001)
-// Required Role: Warehouse Manager
-router.get('/', authorize('Warehouse Manager', 'Admin'), getProducts);
+router.get('/', listProducts);
+router.post('/', createProduct);
+router.get('/:id', getProductById);
+router.put('/:id', updateProduct);
+router.delete('/:id', deleteProduct);
 
-// GET /api/v1/products/:id - Get single product details
-// Required Role: Warehouse Manager, Picker
-router.get('/:id', authorize('Warehouse Manager', 'Picker', 'Admin'), getProductById);
+// BOM endpoints
+router.get('/:id/bom', getProductById);
+router.post('/:id/bom', setProductBom);
 
 export default router;

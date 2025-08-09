@@ -10,161 +10,84 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// User model for authentication
+// User model for authentication (Admin only role in MVP)
 model User {
-  id          String      @id @default(uuid())
-  email       String      @unique
-  password    String
-  firstName   String      @map("first_name")
-  lastName    String      @map("last_name")
-  roleId      String      @map("role_id")
-  role        Role        @relation(fields: [roleId], references: [id])
-  active      Boolean     @default(true)
-  createdAt   DateTime    @default(now()) @map("created_at")
-  updatedAt   DateTime    @updatedAt @map("updated_at")
-  
-  // Relations
-  picklists   Picklist[]
-  adjustments InventoryAdjustment[]
-  
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  firstName String   @map("first_name")
+  lastName  String   @map("last_name")
+  roleId    String   @map("role_id")
+  role      Role     @relation(fields: [roleId], references: [id])
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
   @@map("users")
 }
 
-// Role model for authorization
 model Role {
-  id          String   @id @default(uuid())
-  name        String   @unique
+  id        String   @id @default(uuid())
+  name      String   @unique
   description String?
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
-  
-  // Relations
-  users       User[]
-  
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  users     User[]
+
   @@map("roles")
 }
 
-// Product model
+// Materials (raw ingredients) with expiry and low-stock threshold
+model Material {
+  id                String   @id @default(uuid())
+  name              String
+  quantity          Float
+  unit              String
+  expiryDate        DateTime
+  lowStockThreshold Float
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  bomItems          BOMItem[]
+
+  @@map("materials")
+}
+
+// Finished product
 model Product {
-  id          String   @id @default(uuid())
-  sku         String   @unique
-  barcode     String   @unique
-  name        String
-  description String?
-  unitOfMeasure String @map("unit_of_measure")
-  weight      Float?
-  dimensions  String?    // {length, width, height} - was Json?
-  category    String?
-  active      Boolean  @default(true)
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
-  
-  // Relations
-  inventoryLevels InventoryLevel[]
-  picklistItems   PicklistItem[]
-  adjustments     InventoryAdjustment[]
-  
+  id        String   @id @default(uuid())
+  name      String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  bomItems  BOMItem[]
+  orders    Order[]
+
   @@map("products")
 }
 
-// Bin Location model
-model BinLocation {
-  id          String   @id @default(uuid())
-  code        String   @unique
-  zone        String
-  aisle       String
-  rack        String
-  shelf       String
-  bin         String
-  capacity    Float?
-  active      Boolean  @default(true)
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
-  
-  // Relations
-  inventoryLevels InventoryLevel[]
-  picklistItems   PicklistItem[]
-  adjustments     InventoryAdjustment[]
-  
-  @@map("bin_locations")
+// Bill of Materials items: quantity of a material per product portion
+model BOMItem {
+  id                 String   @id @default(uuid())
+  productId          String   @map("product_id")
+  product            Product  @relation(fields: [productId], references: [id])
+  materialId         String   @map("material_id")
+  material           Material @relation(fields: [materialId], references: [id])
+  quantityPerPortion Float    @map("quantity_per_portion")
+
+  @@unique([productId, materialId])
+  @@map("bom_items")
 }
 
-// Inventory Level model
-model InventoryLevel {
-  id              String      @id @default(uuid())
-  productId       String      @map("product_id")
-  product         Product     @relation(fields: [productId], references: [id])
-  binLocationId   String      @map("bin_location_id")
-  binLocation     BinLocation @relation(fields: [binLocationId], references: [id])
-  quantityOnHand  Float       @map("quantity_on_hand")
-  quantityAvailable Float     @map("quantity_available")
-  quantityReserved Float      @default(0) @map("quantity_reserved")
-  lastCountDate   DateTime?   @map("last_count_date")
-  createdAt       DateTime    @default(now()) @map("created_at")
-  updatedAt       DateTime    @updatedAt @map("updated_at")
-  
-  @@unique([productId, binLocationId])
-  @@map("inventory_levels")
-}
+// Orders placed for finished products
+model Order {
+  id        String   @id @default(uuid())
+  productId String   @map("product_id")
+  product   Product  @relation(fields: [productId], references: [id])
+  quantity  Int
+  orderDate DateTime @map("order_date")
+  createdAt DateTime @default(now()) @map("created_at")
 
-// Inventory Adjustment model
-model InventoryAdjustment {
-  id              String      @id @default(uuid())
-  productId       String      @map("product_id")
-  product         Product     @relation(fields: [productId], references: [id])
-  binLocationId   String      @map("bin_location_id")
-  binLocation     BinLocation @relation(fields: [binLocationId], references: [id])
-  adjustmentType  String      @map("adjustment_type") // was AdjustmentType
-  quantityChange  Float       @map("quantity_change")
-  reason          String
-  notes           String?
-  userId          String      @map("user_id")
-  user            User        @relation(fields: [userId], references: [id])
-  createdAt       DateTime    @default(now()) @map("created_at")
-  
-  @@map("inventory_adjustments")
+  @@map("orders")
 }
-
-// Picklist model
-model Picklist {
-  id            String         @id @default(uuid())
-  orderNumber   String         @unique @map("order_number")
-  status        String         @default("PENDING") // was PicklistStatus
-  assignedToId  String?        @map("assigned_to_id")
-  assignedTo    User?          @relation(fields: [assignedToId], references: [id])
-  priority      Int            @default(0)
-  dueDate       DateTime?      @map("due_date")
-  startedAt     DateTime?      @map("started_at")
-  completedAt   DateTime?      @map("completed_at")
-  notes         String?
-  createdAt     DateTime       @default(now()) @map("created_at")
-  updatedAt     DateTime       @updatedAt @map("updated_at")
-  
-  // Relations
-  items         PicklistItem[]
-  
-  @@map("picklists")
-}
-
-// Picklist Item model
-model PicklistItem {
-  id                  String      @id @default(uuid())
-  picklistId          String      @map("picklist_id")
-  picklist            Picklist    @relation(fields: [picklistId], references: [id])
-  productId           String      @map("product_id")
-  product             Product     @relation(fields: [productId], references: [id])
-  sourceBinLocationId String      @map("source_bin_location_id")
-  sourceBinLocation   BinLocation @relation(fields: [sourceBinLocationId], references: [id])
-  quantityRequested   Float       @map("quantity_requested")
-  quantityPicked      Float       @default(0) @map("quantity_picked")
-  isPicked            Boolean     @default(false) @map("is_picked")
-  pickSequence        Int         @map("pick_sequence")
-  pickedAt            DateTime?   @map("picked_at")
-  notes               String?
-  createdAt           DateTime    @default(now()) @map("created_at")
-  updatedAt           DateTime    @updatedAt @map("updated_at")
-  
-  @@map("picklist_items")
-}
-
-// Removed enums AdjustmentType and PicklistStatus for SQLite compatibility

@@ -1,22 +1,22 @@
 version: '3.8'
 
 services:
-  postgres:
-    image: postgres:15-alpine
-    container_name: nexus-wms-db-dev
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pesenin-api-dev
     environment:
-      POSTGRES_DB: nexus_wms
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      NODE_ENV: development
+      DATABASE_URL: file:./dev.db
+      JWT_SECRET: dev-secret-change
+      JWT_EXPIRES_IN: 7d
+      PORT: 3000
+      CORS_ORIGIN: http://localhost:5173
+      LOG_LEVEL: debug
     ports:
-      - "5432:5432"
+      - '3000:3000'
     volumes:
-      - postgres_dev_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-volumes:
-  postgres_dev_data:
+      - .:/app
+      - /app/node_modules
+    command: sh -c "npx prisma db push && npm run dev"
