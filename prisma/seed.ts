@@ -47,17 +47,13 @@ async function main() {
   const materialList = await prisma.material.findMany();
 
   // Products
-  const dimsum = await prisma.product.upsert({
+  await prisma.product.upsert({
     where: { id: 'dimsum-placeholder-id' },
     update: {},
     create: { name: 'Dimsum Mentai' },
   });
-
-  // Replace upsert by re-fetching created id
   const product = await prisma.product.findFirst({ where: { name: 'Dimsum Mentai' } });
-  if (!product) {
-    throw new Error('Failed to seed product');
-  }
+  if (!product) throw new Error('Failed to seed product');
 
   // BOM for product
   await prisma.bOMItem.createMany({
@@ -86,6 +82,27 @@ async function main() {
   });
 
   console.log('✅ Product and BOM seeded');
+
+  // Seed a sample order with two items and correct stock deduction
+  const sampleOrder = await prisma.order.create({ data: { orderDate: new Date() } });
+  const bom = await prisma.bOMItem.findMany({ where: { productId: product.id }, include: { material: true } });
+  const itemQuantities = [2, 3];
+  const requiredByMaterial = new Map<string, number>();
+  for (const q of itemQuantities) {
+    for (const bi of bom) {
+      requiredByMaterial.set(bi.materialId, (requiredByMaterial.get(bi.materialId) || 0) + bi.quantityPerPortion * q);
+    }
+  }
+  for (const [mid, reqQty] of requiredByMaterial) {
+    await prisma.material.update({ where: { id: mid }, data: { quantity: { decrement: reqQty } } });
+  }
+  await prisma.orderItem.createMany({
+    data: [
+      { orderId: sampleOrder.id, productId: product.id, productNameSnapshot: product.name, quantity: itemQuantities[0] },
+      { orderId: sampleOrder.id, productId: product.id, productNameSnapshot: product.name, quantity: itemQuantities[1] },
+    ],
+  });
+  console.log('✅ Sample order with multiple items seeded');
 
   console.log('🎉 Database seed completed successfully!');
 }

@@ -56,13 +56,13 @@ model Material {
 
 // Finished product
 model Product {
-  id        String   @id @default(uuid())
-  name      String
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id         String      @id @default(uuid())
+  name       String
+  createdAt  DateTime    @default(now()) @map("created_at")
+  updatedAt  DateTime    @updatedAt @map("updated_at")
 
-  bomItems  BOMItem[]
-  orders    Order[]
+  bomItems   BOMItem[]
+  orderItems OrderItem[]
 
   @@map("products")
 }
@@ -82,12 +82,26 @@ model BOMItem {
 
 // Orders placed for finished products
 model Order {
-  id        String   @id @default(uuid())
-  productId String   @map("product_id")
-  product   Product  @relation(fields: [productId], references: [id])
-  quantity  Int
-  orderDate DateTime @map("order_date")
-  createdAt DateTime @default(now()) @map("created_at")
+  id        String      @id @default(uuid())
+  orderDate DateTime    @map("order_date")
+  status    String      @default("CONFIRMED")
+  createdAt DateTime    @default(now()) @map("created_at")
+  updatedAt DateTime    @updatedAt @map("updated_at")
+
+  items     OrderItem[]
 
   @@map("orders")
+}
+
+model OrderItem {
+  id                  String   @id @default(uuid())
+  orderId             String   @map("order_id")
+  order               Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId           String?  @map("product_id")
+  product             Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  productNameSnapshot String   @map("product_name_snapshot")
+  quantity            Int
+  createdAt           DateTime @default(now()) @map("created_at")
+
+  @@map("order_items")
 }

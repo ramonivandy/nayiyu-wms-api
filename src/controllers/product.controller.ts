@@ -74,10 +74,21 @@ export const updateProduct = asyncHandler(async (req: Request, res: Response) =>
 // Delete product
 export const deleteProduct = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
+  // Block deletion if there are active orders (status = CONFIRMED) containing this product
+  const activeOrderItemsCount = await (prisma as any).orderItem.count({
+    where: { productId: id, order: { status: 'CONFIRMED' } },
+  });
+  if (activeOrderItemsCount > 0) {
+    return res.status(400).json({
+      success: false,
+      message: 'Cannot delete product with active orders. Please cancel or complete related orders first.',
+    });
+  }
+
+  // Safe delete: remove BOM entries; do NOT touch existing orders/items (they keep name snapshot)
   await prisma.bOMItem.deleteMany({ where: { productId: id } });
-  await prisma.order.deleteMany({ where: { productId: id } });
   await prisma.product.delete({ where: { id } });
-  res.json({ success: true });
+  return res.json({ success: true });
 });
 
 // Get product by id with BOM
