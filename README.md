@@ -20,7 +20,7 @@ cp .env.example .env
 ```
 3) Init DB and seed
 ```bash
-npx prisma db push
+npx prisma migrate dev
 npm run prisma:seed
 ```
 4) Run
@@ -52,13 +52,16 @@ Header: `Authorization: Bearer <token>`
 - POST `/products` { name }
 - GET `/products/:id`
 - PUT `/products/:id`
-- DELETE `/products/:id`
+- DELETE `/products/:id` (safe delete; blocked if active orders exist; historical orders keep product name snapshot)
 - GET `/products/:id/bom`
 - POST `/products/:id/bom` { items: [{ materialId, quantityPerPortion }] }
 
 ### Orders
-- GET `/orders` (page, limit)
-- POST `/orders` { productId, quantity, orderDate }
+- GET `/orders` (page, limit) — returns orders with `items[]`
+- POST `/orders` { orderDate, items: [{ productId, quantity }] } — multi-item order; decrements materials based on aggregated BOM
+- POST `/orders/:id/cancel` — restores materials and sets status to CANCELLED
+- POST `/orders/:id/complete` — sets status to COMPLETED
+- PUT `/orders/:orderId/items/:itemId/quantity` { quantity } — edit within 5 minutes of order creation; adjusts materials accordingly
 
 ### Calculations
 - POST `/calculations/production` { productId, requestedQuantity? }
